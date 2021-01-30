@@ -50,6 +50,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Angle.cs" />
     <Compile Include="Colors.cs" />
     <Compile Include="Grid.cs" />
     <Compile Include="IUpdatable.cs" />

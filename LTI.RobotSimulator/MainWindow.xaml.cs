@@ -23,8 +23,6 @@ namespace LTI.RobotSimulator
         public MainWindow()
         {
             InitializeComponent();
-            renderControl.MouseMove += RenderControl_MouseMove;
-            renderControl.MouseWheel += RenderControl_MouseWheel;
 
             surface = new RenderWindow(renderControl.Handle);
             clock = new Clock();
@@ -57,6 +55,12 @@ namespace LTI.RobotSimulator
 
             surface.Clear();
             surface.Draw(simulationGrid);
+
+            foreach (var point in robot.Trajectory)
+            {
+                surface.Draw(point);
+            }
+
             surface.Draw(robot);
             surface.Display();
         }

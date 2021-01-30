@@ -8,9 +8,9 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800" WindowStartupLocation="CenterScreen" Closed="Window_Closed">
     <Grid x:Name="grid">
-        <WindowsFormsHost x:Name="windowsFormsHost">
+        <WindowsFormsHost>
             <WindowsFormsHost.Child>
-                <wf:Control x:Name="renderControl"/>
+                <wf:Control x:Name="renderControl" MouseMove="RenderControl_MouseMove" MouseWheel="RenderControl_MouseWheel"/>
             </WindowsFormsHost.Child>
         </WindowsFormsHost>
     </Grid>
