@@ -3,7 +3,10 @@ using SFML.Graphics;
 using SFML.System;
 using System;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using Grid = LTI.RobotSimulator.Core.Grid;
 
 namespace LTI.RobotSimulator
 {
@@ -12,6 +15,7 @@ namespace LTI.RobotSimulator
     /// </summary>
     public partial class MainWindow : Window
     {
+        private readonly string initialTitle;
         private readonly RenderWindow surface;
         private readonly Clock clock;
         private float time;
@@ -24,11 +28,16 @@ namespace LTI.RobotSimulator
         {
             InitializeComponent();
 
+            Width = SystemParameters.WorkArea.Width * 0.9f;
+            Height = SystemParameters.WorkArea.Height * 0.9f;
+
+            initialTitle = Title;
+
             surface = new RenderWindow(renderControl.Handle);
             clock = new Clock();
 
             robot = new Robot();
-            simulationGrid = new Grid(10);
+            simulationGrid = new Grid(20);
 
             CompositionTarget.Rendering += CompositionTarget_Rendering;
         }
@@ -41,7 +50,7 @@ namespace LTI.RobotSimulator
             time += deltaTime;
             if (time >= 1)
             {
-                Title = (1 / deltaTime).ToString();
+                Title = initialTitle + " " + ((uint)(1 / deltaTime)).ToString() + " FPS";
                 time = 0;
             }
 
@@ -95,6 +104,32 @@ namespace LTI.RobotSimulator
         private void Window_Closed(object sender, EventArgs e)
         {
             surface.Close();
+        }
+
+        private void RunPauseButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (((TextBlock)runPauseStackPanel.Children[1]).Text == "Run")
+            {
+                ((TextBlock)runPauseStackPanel.Children[1]).Text = "Pause";
+                ((System.Windows.Controls.Image)runPauseStackPanel.Children[0]).Source = new BitmapImage(new Uri("Icons/Pause_16x.png", UriKind.Relative));
+                robot.SetAllowMove(true);
+            }
+            else
+            {
+                ((TextBlock)runPauseStackPanel.Children[1]).Text = "Run";
+                ((System.Windows.Controls.Image)runPauseStackPanel.Children[0]).Source = new BitmapImage(new Uri("Icons/Run_16x.png", UriKind.Relative));
+                robot.SetAllowMove(false);
+            }
+        }
+
+        private void RenderControl_Click(object sender, EventArgs e)
+        {
+            if (((TextBlock)runPauseStackPanel.Children[1]).Text == "Pause")
+            {
+                ((TextBlock)runPauseStackPanel.Children[1]).Text = "Run";
+                ((System.Windows.Controls.Image)runPauseStackPanel.Children[0]).Source = new BitmapImage(new Uri("Icons/Run_16x.png", UriKind.Relative));
+                robot.SetAllowMove(false);
+            }
         }
     }
 }

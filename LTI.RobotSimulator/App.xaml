@@ -4,6 +4,9 @@
              xmlns:local="clr-namespace:LTI.RobotSimulator"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
-         
+        <BitmapImage x:Key="Open" UriSource="Icons/OpenFile_16x.png" />
+        <BitmapImage x:Key="Save" UriSource="Icons/Save_16x.png" />
+        <BitmapImage x:Key="Run" UriSource="Icons/Run_16x.png" />
+        <BitmapImage x:Key="Pause" UriSource="Icons/Pause_16x.png" />
     </Application.Resources>
 </Application>

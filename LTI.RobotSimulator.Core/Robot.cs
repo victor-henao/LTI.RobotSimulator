@@ -8,6 +8,7 @@ namespace LTI.RobotSimulator.Core
     public class Robot : CircleShape, IUpdatable
     {
         private const float BaseSpeed = 50;
+        private bool allowMove = false;
 
         public Robot() : base(50)
         {
@@ -17,25 +18,30 @@ namespace LTI.RobotSimulator.Core
 
         public List<CircleShape> Trajectory { get; set; }
 
+        public void SetAllowMove(bool allowMove) => this.allowMove = allowMove;
+
         public void Update(float deltaTime)
         {
-            float left = Angle.ToRadians(BaseSpeed * deltaTime) * 2;
-            float right = Angle.ToRadians(BaseSpeed * deltaTime);
-            Move(left, right);
-
-            void Move(float leftDelta, float rightDelta)
+            if (allowMove)
             {
-                float thetaDelta = ((50 * rightDelta) - (50 * leftDelta)) / (2 * Radius);
+                float left = Angle.ToRadians(BaseSpeed * deltaTime) * 2;
+                float right = Angle.ToRadians(BaseSpeed * deltaTime);
+                Move(left, right);
 
-                Position += new Vector2f(
-                    (50 * leftDelta + 50 * rightDelta) / 2 * (float)Math.Cos(-Rotation),
-                    (50 * leftDelta + 50 * rightDelta) / 2 * (float)Math.Sin(-Rotation));
+                void Move(float leftDelta, float rightDelta)
+                {
+                    float thetaDelta = ((50 * rightDelta) - (50 * leftDelta)) / (2 * Radius);
 
-                Rotation += thetaDelta;
+                    Position += new Vector2f(
+                        (50 * leftDelta + 50 * rightDelta) / 2 * (float)Math.Cos(-Rotation),
+                        (50 * leftDelta + 50 * rightDelta) / 2 * (float)Math.Sin(-Rotation));
+
+                    Rotation += thetaDelta;
+                }
+
+                // Update trajectory
+                Trajectory.Add(new CircleShape(2) { Position = Position, Origin = new Vector2f(2, 2), FillColor = Color.Green });
             }
-
-            // Update trajectory
-            Trajectory.Add(new CircleShape(2) { Position = Position, Origin = new Vector2f(2, 2), FillColor = Color.Green });
         }
     }
 }
