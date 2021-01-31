@@ -4,8 +4,10 @@ using SFML.System;
 using System;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Forms;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Xml;
 using Grid = LTI.RobotSimulator.Core.Grid;
 
 namespace LTI.RobotSimulator
@@ -18,6 +20,7 @@ namespace LTI.RobotSimulator
         private readonly string initialTitle;
         private readonly RenderWindow surface;
         private readonly Clock clock;
+        private bool simulationRunning = false;
         private float time;
 
         // Drawables
@@ -58,7 +61,7 @@ namespace LTI.RobotSimulator
 
             robot.Update(deltaTime);
 
-            var updateView = new View(robot.Position, (Vector2f)surface.Size);
+            var updateView = new SFML.Graphics.View(robot.Position, (Vector2f)surface.Size);
             updateView.Zoom(Zoom);
             surface.SetView(updateView);
 
@@ -74,7 +77,7 @@ namespace LTI.RobotSimulator
             surface.Display();
         }
 
-        private void RenderControl_MouseWheel(object sender, System.Windows.Forms.MouseEventArgs e)
+        private void RenderControl_MouseWheel(object sender, MouseEventArgs e)
         {
             switch (e.Delta)
             {
@@ -96,40 +99,96 @@ namespace LTI.RobotSimulator
             }
         }
 
-        private void RenderControl_MouseMove(object sender, System.Windows.Forms.MouseEventArgs e)
+        private void RenderControl_MouseMove(object sender, MouseEventArgs e)
         {
 
         }
 
-        private void Window_Closed(object sender, EventArgs e)
+        private void OpenButton_Click(object sender, RoutedEventArgs e)
         {
-            surface.Close();
+            robot.SetAllowMove(false);
+
+            using (var openFileDialog = new OpenFileDialog())
+            {
+                openFileDialog.Filter = "XML simulation files (*.xml)|*.xml|All files (*.*)|*.*";
+                if (openFileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                {
+
+                }
+            }
+
+            robot.SetAllowMove(true);
+        }
+
+        private void SaveButton_Click(object sender, RoutedEventArgs e)
+        {
+            bool simulationWasRunning = simulationRunning;
+            SetSimulationRunning(false);
+
+            using (var saveFileDialog = new SaveFileDialog())
+            {
+                saveFileDialog.InitialDirectory = ".";
+                saveFileDialog.Filter = "XML simulation files (*.xml)|*.xml|All files (*.*)|*.*";
+
+                if (saveFileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                {
+                    using (var writer = XmlWriter.Create(saveFileDialog.FileName, new XmlWriterSettings() { Indent = true }))
+                    {
+                        writer.WriteStartElement("simulation");
+                        writer.WriteStartElement("trajectory");
+
+                        foreach (var point in robot.Trajectory)
+                        {
+                            writer.WriteStartElement("point");
+                            writer.WriteElementString("position", $"{point.Position.X} {point.Position.Y}");
+                            writer.WriteEndElement();
+                        }
+
+                        writer.WriteEndElement();
+                        writer.WriteEndElement();
+                        writer.Flush();
+                    }
+                }
+            }
+
+            if (simulationWasRunning)
+            {
+                SetSimulationRunning(true);
+            }
         }
 
         private void RunPauseButton_Click(object sender, RoutedEventArgs e)
         {
-            if (((TextBlock)runPauseStackPanel.Children[1]).Text == "Run")
+            SetSimulationRunning(!simulationRunning);
+        }
+
+        private void RenderControl_Click(object sender, EventArgs e)
+        {
+            SetSimulationRunning(false);
+        }
+
+        private void SetSimulationRunning(bool simulationRunning)
+        {
+            robot.SetAllowMove(simulationRunning);
+
+            if (simulationRunning)
             {
                 ((TextBlock)runPauseStackPanel.Children[1]).Text = "Pause";
                 ((System.Windows.Controls.Image)runPauseStackPanel.Children[0]).Source = new BitmapImage(new Uri("Icons/Pause_16x.png", UriKind.Relative));
-                robot.SetAllowMove(true);
             }
             else
             {
                 ((TextBlock)runPauseStackPanel.Children[1]).Text = "Run";
                 ((System.Windows.Controls.Image)runPauseStackPanel.Children[0]).Source = new BitmapImage(new Uri("Icons/Run_16x.png", UriKind.Relative));
-                robot.SetAllowMove(false);
             }
+
+            robot.SetAllowMove(simulationRunning);
+            this.simulationRunning = simulationRunning;
         }
 
-        private void RenderControl_Click(object sender, EventArgs e)
+        private void Window_Closed(object sender, EventArgs e)
         {
-            if (((TextBlock)runPauseStackPanel.Children[1]).Text == "Pause")
-            {
-                ((TextBlock)runPauseStackPanel.Children[1]).Text = "Run";
-                ((System.Windows.Controls.Image)runPauseStackPanel.Children[0]).Source = new BitmapImage(new Uri("Icons/Run_16x.png", UriKind.Relative));
-                robot.SetAllowMove(false);
-            }
+            surface.Close();
         }
     }
 }

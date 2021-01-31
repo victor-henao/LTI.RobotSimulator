@@ -9,13 +9,13 @@
         Title="Robot Simulator" Height="450" Width="800" WindowStartupLocation="CenterScreen" Closed="Window_Closed">
     <DockPanel>
         <ToolBar DockPanel.Dock="Top">
-            <Button>
+            <Button Click="OpenButton_Click">
                 <StackPanel Orientation="Horizontal" Height="16">
                     <Image Source="{StaticResource Open}"/>
                     <TextBlock>Open</TextBlock>
                 </StackPanel>
             </Button>
-            <Button>
+            <Button Click="SaveButton_Click">
                 <StackPanel Orientation="Horizontal" Height="16">
                     <Image Source="{StaticResource Save}"/>
                     <TextBlock>Save</TextBlock>
