@@ -2,6 +2,7 @@
 using SFML.Graphics;
 using SFML.System;
 using System;
+using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Forms;
@@ -19,7 +20,10 @@ namespace LTI.RobotSimulator
     {
         private readonly string initialTitle;
         private readonly RenderWindow surface;
+        private readonly List<List<Vertex>> obstacles;
         private readonly Clock clock;
+        private bool firstObstacleClick = true;
+        private bool obstacleBeingDrawn = false;
         private bool simulationRunning = false;
         private float time;
 
@@ -39,13 +43,14 @@ namespace LTI.RobotSimulator
             surface = new RenderWindow(renderControl.Handle);
             clock = new Clock();
 
-            robot = new Robot();
+            robot = new Robot(4);
             simulationGrid = new Grid(20);
+            obstacles = new List<List<Vertex>>();
 
             CompositionTarget.Rendering += CompositionTarget_Rendering;
         }
 
-        public float Zoom { get; set; } = 2;
+        public float Zoom { get; set; } = 1;
 
         private void CompositionTarget_Rendering(object sender, EventArgs e)
         {
@@ -74,6 +79,17 @@ namespace LTI.RobotSimulator
             }
 
             surface.Draw(robot);
+
+            foreach (var sensor in robot.Sensors)
+            {
+                surface.Draw(sensor);
+            }
+
+            foreach (var obstacle in obstacles)
+            {
+                surface.Draw(obstacle.ToArray(), PrimitiveType.LineStrip);
+            }
+
             surface.Display();
         }
 
@@ -101,7 +117,14 @@ namespace LTI.RobotSimulator
 
         private void RenderControl_MouseMove(object sender, MouseEventArgs e)
         {
-
+            if (obstacleBeingDrawn)
+            {
+                var currentObstacle = obstacles[obstacles.Count - 1];
+                if (currentObstacle.Count > 1)
+                {
+                    currentObstacle[currentObstacle.Count - 1] = new Vertex(surface.MapPixelToCoords(new Vector2i(e.X, e.Y)));
+                }
+            }
         }
 
         private void OpenButton_Click(object sender, RoutedEventArgs e)
@@ -111,6 +134,7 @@ namespace LTI.RobotSimulator
             using (var openFileDialog = new OpenFileDialog())
             {
                 openFileDialog.Filter = "XML simulation files (*.xml)|*.xml|All files (*.*)|*.*";
+
                 if (openFileDialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                 {
 
@@ -162,11 +186,6 @@ namespace LTI.RobotSimulator
             SetSimulationRunning(!simulationRunning);
         }
 
-        private void RenderControl_Click(object sender, EventArgs e)
-        {
-            SetSimulationRunning(false);
-        }
-
         private void SetSimulationRunning(bool simulationRunning)
         {
             robot.SetAllowMove(simulationRunning);
@@ -189,6 +208,59 @@ namespace LTI.RobotSimulator
         private void Window_Closed(object sender, EventArgs e)
         {
             surface.Close();
+        }
+
+        private void RenderControl_MouseClick(object sender, MouseEventArgs e)
+        {
+            if (obstacles.Count == 0)
+            {
+                obstacles.Add(new List<Vertex>());
+            }
+
+            var currentObstacle = obstacles[obstacles.Count - 1];
+
+            if (e.Button == MouseButtons.Left)
+            {
+                SetSimulationRunning(false);
+
+                if (firstObstacleClick)
+                {
+                    obstacleBeingDrawn = true;
+                    currentObstacle.Add(new Vertex(surface.MapPixelToCoords(new Vector2i(e.X, e.Y))));
+                    currentObstacle.Add(new Vertex(surface.MapPixelToCoords(new Vector2i(e.X, e.Y))));
+                    firstObstacleClick = false;
+                }
+                else
+                {
+                    currentObstacle.Add(new Vertex(surface.MapPixelToCoords(new Vector2i(e.X, e.Y))));
+                }
+            }
+            else if (e.Button == MouseButtons.Right)
+            {
+                switch (currentObstacle.Count)
+                {
+                    case var count when count >= 2:
+                        if (currentObstacle.Count >= 4)
+                        {
+                            currentObstacle[currentObstacle.Count - 1] = currentObstacle[0];
+                        }
+                        else if (currentObstacle.Count == 3)
+                        {
+                            currentObstacle.RemoveAt(currentObstacle.Count - 1);
+                        }
+                        else if (currentObstacle.Count == 2)
+                        {
+                            currentObstacle.Clear();
+                        }
+
+                        obstacleBeingDrawn = false;
+                        firstObstacleClick = true;
+
+                        obstacles.Add(new List<Vertex>());
+
+                        break;
+                }
+            }
         }
     }
 }

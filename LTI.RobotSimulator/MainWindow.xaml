@@ -30,7 +30,7 @@
         </ToolBar>
             <WindowsFormsHost>
             <WindowsFormsHost.Child>
-                <wf:Control x:Name="renderControl" MouseMove="RenderControl_MouseMove" MouseWheel="RenderControl_MouseWheel" Click="RenderControl_Click"/>
+                <wf:Control x:Name="renderControl" MouseMove="RenderControl_MouseMove" MouseWheel="RenderControl_MouseWheel" MouseClick="RenderControl_MouseClick"/>
             </WindowsFormsHost.Child>
         </WindowsFormsHost>
     </DockPanel>
