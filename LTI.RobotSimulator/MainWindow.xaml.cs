@@ -44,7 +44,7 @@ namespace LTI.RobotSimulator
             clock = new Clock();
 
             robot = new Robot(4);
-            simulationGrid = new Grid(20);
+            simulationGrid = new Grid(40);
             obstacles = new List<List<Vertex>>();
 
             CompositionTarget.Rendering += CompositionTarget_Rendering;
@@ -165,6 +165,23 @@ namespace LTI.RobotSimulator
                         {
                             writer.WriteStartElement("point");
                             writer.WriteElementString("position", $"{point.Position.X} {point.Position.Y}");
+                            writer.WriteEndElement();
+                        }
+
+                        writer.WriteEndElement();
+                        writer.WriteStartElement("obstacles");
+
+                        foreach (var obstacle in obstacles)
+                        {
+                            writer.WriteStartElement("obstacle");
+
+                            foreach (var vertex in obstacle)
+                            {
+                                writer.WriteStartElement("vertices");
+                                writer.WriteElementString("vertex", $"{vertex.Position.X} {vertex.Position.Y}");
+                                writer.WriteEndElement();
+                            }
+
                             writer.WriteEndElement();
                         }
 

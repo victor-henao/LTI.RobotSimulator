@@ -69,7 +69,7 @@ namespace LTI.RobotSimulator.Core
 
                     angle += angleOffset;
                 }
-                
+
                 // Update trajectory
                 Trajectory.Add(new CircleShape(2) { Position = Position, Origin = new Vector2f(2, 2), FillColor = Color.Green });
             }

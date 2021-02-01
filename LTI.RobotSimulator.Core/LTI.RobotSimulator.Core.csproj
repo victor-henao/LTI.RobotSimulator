@@ -54,6 +54,7 @@
     <Compile Include="Colors.cs" />
     <Compile Include="Grid.cs" />
     <Compile Include="IUpdatable.cs" />
+    <Compile Include="Line.cs" />
     <Compile Include="Robot.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
