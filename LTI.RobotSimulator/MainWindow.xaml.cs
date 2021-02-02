@@ -82,14 +82,14 @@ namespace LTI.RobotSimulator
                 surface.Draw(obstacle.ToArray(), PrimitiveType.LineStrip);
             }
 
-            foreach (var point in robot.Cloud)
+            foreach (var trajectoryCirlce in robot.Trajectory)
             {
-                surface.Draw(point);
-            }
+                surface.Draw(trajectoryCirlce);
 
-            foreach (var point in robot.Trajectory)
-            {
-                surface.Draw(point);
+                foreach (var impactCircle in trajectoryCirlce.ImpactCircles)
+                {
+                    surface.Draw(impactCircle);
+                }
             }
 
             foreach (var sensor in robot.Sensors)
@@ -167,35 +167,45 @@ namespace LTI.RobotSimulator
                 {
                     using (var writer = XmlWriter.Create(saveFileDialog.FileName, new XmlWriterSettings() { Indent = true }))
                     {
-                        writer.WriteStartElement("simulation");
-                        writer.WriteStartElement("trajectory");
+                        writer.WriteStartElement("simulation"); // <simulation>
+                        writer.WriteStartElement("trajectory"); // <trajectory>
 
                         foreach (var point in robot.Trajectory)
                         {
-                            writer.WriteStartElement("point");
+                            writer.WriteStartElement("point"); // <point>
                             writer.WriteElementString("position", $"{point.Position.X} {point.Position.Y}");
-                            writer.WriteEndElement();
+                            writer.WriteElementString("rotation", $"{point.Rotation}");
+
+                            writer.WriteStartElement("impactPoints"); // <impactPoints>
+
+                            foreach (var impactPoint in point.ImpactCircles)
+                            {
+                                writer.WriteStartElement("impactPoint"); // <impactPoint>
+                                writer.WriteElementString("position", $"{impactPoint.Position.X} {impactPoint.Position.Y}");
+                                writer.WriteEndElement(); // </impactPoint>
+                            }
+
+                            writer.WriteEndElement(); // </impactPoints>
+                            writer.WriteEndElement(); // </point>
                         }
 
-                        writer.WriteEndElement();
-                        writer.WriteStartElement("obstacles");
+                        writer.WriteEndElement(); // </trajectory>
+                        writer.WriteStartElement("obstacles"); // <obstacles>
 
                         foreach (var obstacle in obstacles)
                         {
-                            writer.WriteStartElement("obstacle");
+                            writer.WriteStartElement("obstacle"); // <obstacle>
 
                             foreach (var vertex in obstacle)
                             {
-                                writer.WriteStartElement("vertices");
-                                writer.WriteElementString("vertex", $"{vertex.Position.X} {vertex.Position.Y}");
-                                writer.WriteEndElement();
+                                writer.WriteElementString("vertexPosition", $"{vertex.Position.X} {vertex.Position.Y}");
                             }
 
-                            writer.WriteEndElement();
+                            writer.WriteEndElement(); // </obstacle>
                         }
 
-                        writer.WriteEndElement();
-                        writer.WriteEndElement();
+                        writer.WriteEndElement(); // </obstacles>
+                        writer.WriteEndElement(); // </simulation>
                         writer.Flush();
                     }
                 }

@@ -17,9 +17,8 @@ namespace LTI.RobotSimulator.Core
             this.sensorCount = sensorCount;
 
             Origin = new Vector2f(50, 50);
-            Trajectory = new List<CircleShape>();
+            Trajectory = new List<TrajectoryCircle>();
             Sensors = new List<CircleShape>();
-            Cloud = new List<CircleShape>();
 
             for (float angle = 0; angle < Math.PI * 2; angle += (float)Math.PI * 2 / sensorCount)
             {
@@ -36,11 +35,9 @@ namespace LTI.RobotSimulator.Core
             }
         }
 
-        public List<CircleShape> Trajectory { get; set; }
+        public List<TrajectoryCircle> Trajectory { get; set; }
 
         public List<CircleShape> Sensors { get; set; }
-
-        public List<CircleShape> Cloud { get; set; }
 
         public void SetAllowMove(bool allowMove) => this.allowMove = allowMove;
 
@@ -48,6 +45,15 @@ namespace LTI.RobotSimulator.Core
         {
             if (allowMove)
             {
+                var trajectoryCircle = new TrajectoryCircle(2)
+                {
+                    Radius = 2,
+                    Origin = new Vector2f(2, 2),
+                    Position = Position,
+                    Rotation = Rotation,
+                    FillColor = Color.Green
+                };
+
                 foreach (var sensor in Sensors)
                 {
                     var sensorLine = new Ray(Position, sensor.Position);
@@ -84,9 +90,11 @@ namespace LTI.RobotSimulator.Core
 
                     if (nearestPoint != null)
                     {
-                        Cloud.Add(nearestPoint);
+                        trajectoryCircle.ImpactCircles.Add(nearestPoint);
                     }
                 }
+
+                Trajectory.Add(trajectoryCircle);
             }
         }
 
@@ -120,9 +128,6 @@ namespace LTI.RobotSimulator.Core
 
                     angle += angleOffset;
                 }
-
-                // Update trajectory
-                Trajectory.Add(new CircleShape(2) { Position = Position, Origin = new Vector2f(2, 2), FillColor = Color.Green });
             }
         }
     }
