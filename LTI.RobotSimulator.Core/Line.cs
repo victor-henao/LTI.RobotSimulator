@@ -2,35 +2,39 @@
 
 namespace LTI.RobotSimulator.Core
 {
-    struct Line
+    class Line
     {
-        public Vector2f A;
-        public Vector2f B;
-
         public Line(Vector2f a, Vector2f b) => (A, B) = (a, b);
+
+        public Vector2f A { get; }
+
+        public Vector2f B { get; }
 
         public float Slope => (B.Y - A.Y) / (B.X - A.X);
 
         public float YIntercept => A.Y - (Slope * A.X);
 
-        public static Vector2f SolveSystem(Line a, Line b)
+        public bool IsHorizontal => A.Y == B.Y;
+
+        public bool IsVertical => A.X == B.X;
+
+        public static Vector2f? SolveSystem(Line a, Line b)
         {
+            if (a.Slope == b.Slope)
+            {
+                return null;
+            }
+
             float x, y;
 
-            var a1 = new Vector2f(a.A.X, a.A.Y);
-            var b1 = new Vector2f(a.B.X, a.B.Y);
-
-            var a2 = new Vector2f(b.A.X, b.A.Y);
-            var b2 = new Vector2f(b.B.X, b.B.Y);
-
-            if (a1.X == b1.X)
+            if (a.IsVertical)
             {
-                x = a1.X;
+                x = a.A.X;
                 y = b.Slope * x + b.YIntercept;
             }
-            else if (a2.X == b2.X)
+            else if (b.IsVertical)
             {
-                x = a2.X;
+                x = b.A.X;
                 y = a.Slope * x + a.YIntercept;
             }
             else

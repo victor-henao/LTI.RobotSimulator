@@ -1,6 +1,7 @@
 ﻿using LTI.RobotSimulator.Core;
 using SFML.Graphics;
 using SFML.System;
+using SFML.Window;
 using System;
 using System.Collections.Generic;
 using System.Windows;
@@ -10,6 +11,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Xml;
 using Grid = LTI.RobotSimulator.Core.Grid;
+using Window = System.Windows.Window;
 
 namespace LTI.RobotSimulator
 {
@@ -35,12 +37,12 @@ namespace LTI.RobotSimulator
         {
             InitializeComponent();
 
-            Width = SystemParameters.WorkArea.Width * 0.9f;
-            Height = SystemParameters.WorkArea.Height * 0.9f;
+            Height = SystemParameters.WorkArea.Height * 0.9;
+            Width = Height * 4 / 3;
 
             initialTitle = Title;
 
-            surface = new RenderWindow(renderControl.Handle);
+            surface = new RenderWindow(renderControl.Handle, new ContextSettings() { AntialiasingLevel = 16 });
             clock = new Clock();
 
             robot = new Robot(4);
@@ -56,6 +58,7 @@ namespace LTI.RobotSimulator
         {
             float deltaTime = clock.Restart().AsSeconds();
             time += deltaTime;
+
             if (time >= 1)
             {
                 Title = initialTitle + " " + ((uint)(1 / deltaTime)).ToString() + " FPS";
@@ -64,6 +67,7 @@ namespace LTI.RobotSimulator
 
             surface.DispatchEvents();
 
+            robot.UpdatePointCloud(obstacles);
             robot.Update(deltaTime);
 
             var updateView = new SFML.Graphics.View(robot.Position, (Vector2f)surface.Size);
@@ -73,23 +77,27 @@ namespace LTI.RobotSimulator
             surface.Clear();
             surface.Draw(simulationGrid);
 
-            foreach (var point in robot.Trajectory)
+            foreach (var obstacle in obstacles)
+            {
+                surface.Draw(obstacle.ToArray(), PrimitiveType.LineStrip);
+            }
+
+            foreach (var point in robot.Cloud)
             {
                 surface.Draw(point);
             }
 
-            surface.Draw(robot);
+            foreach (var point in robot.Trajectory)
+            {
+                surface.Draw(point);
+            }
 
             foreach (var sensor in robot.Sensors)
             {
                 surface.Draw(sensor);
             }
 
-            foreach (var obstacle in obstacles)
-            {
-                surface.Draw(obstacle.ToArray(), PrimitiveType.LineStrip);
-            }
-
+            surface.Draw(robot);
             surface.Display();
         }
 
@@ -120,6 +128,7 @@ namespace LTI.RobotSimulator
             if (obstacleBeingDrawn)
             {
                 var currentObstacle = obstacles[obstacles.Count - 1];
+
                 if (currentObstacle.Count > 1)
                 {
                     currentObstacle[currentObstacle.Count - 1] = new Vertex(surface.MapPixelToCoords(new Vector2i(e.X, e.Y)));

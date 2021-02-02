@@ -2,6 +2,7 @@
 using SFML.System;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace LTI.RobotSimulator.Core
 {
@@ -18,6 +19,7 @@ namespace LTI.RobotSimulator.Core
             Origin = new Vector2f(50, 50);
             Trajectory = new List<CircleShape>();
             Sensors = new List<CircleShape>();
+            Cloud = new List<CircleShape>();
 
             for (float angle = 0; angle < Math.PI * 2; angle += (float)Math.PI * 2 / sensorCount)
             {
@@ -29,6 +31,7 @@ namespace LTI.RobotSimulator.Core
                         (float)Math.Sin(angle) * Radius),
                     FillColor = Color.Blue
                 };
+
                 Sensors.Add(circle);
             }
         }
@@ -37,7 +40,55 @@ namespace LTI.RobotSimulator.Core
 
         public List<CircleShape> Sensors { get; set; }
 
+        public List<CircleShape> Cloud { get; set; }
+
         public void SetAllowMove(bool allowMove) => this.allowMove = allowMove;
+
+        public void UpdatePointCloud(List<List<Vertex>> obstacles)
+        {
+            if (allowMove)
+            {
+                foreach (var sensor in Sensors)
+                {
+                    var sensorLine = new Ray(Position, sensor.Position);
+                    var distances = new Dictionary<CircleShape, float>();
+
+                    foreach (var obstacle in obstacles)
+                    {
+                        var obstacleLines = new List<LineSegment>();
+
+                        for (int i = 0; i < obstacle.Count - 1; i++)
+                        {
+                            obstacleLines.Add(new LineSegment(obstacle[i].Position, obstacle[i + 1].Position));
+                        }
+
+                        foreach (var obstacleLine in obstacleLines)
+                        {
+                            var intersectionCoords = sensorLine.IntersectionWith(obstacleLine);
+
+                            if (intersectionCoords != null)
+                            {
+                                var intersectionCircle = new CircleShape(2)
+                                {
+                                    Origin = new Vector2f(2, 2),
+                                    FillColor = Color.Yellow,
+                                    Position = intersectionCoords.Value
+                                };
+
+                                distances.Add(intersectionCircle, new LineSegment(sensor.Position, intersectionCoords.Value).Lenght);
+                            }
+                        }
+                    }
+
+                    var nearestPoint = distances.OrderBy(pair => pair.Value).FirstOrDefault().Key;
+
+                    if (nearestPoint != null)
+                    {
+                        Cloud.Add(nearestPoint);
+                    }
+                }
+            }
+        }
 
         public void Update(float deltaTime)
         {
